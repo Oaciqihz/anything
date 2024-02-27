@@ -1,0 +1,201 @@
+## uni-app离线打包
+
+
+
+#### 前置准备
+
+- 下载 [Andriod Studio](https://developer.android.com/studio?hl=zh-cn)
+
+- 下载 [SDK](https://nativesupport.dcloud.net.cn/AppDocs/download/android.html)
+
+- 下载 [JDK11](https://www.azul.com/downloads/#zulu)
+
+- 生成`keystore`
+
+- 生成本地App资源 `__UNI__xxx`
+
+  ![image-20240227144141654](/Users/xiaonahe/Library/Application Support/typora-user-images/image-20240227144141654.png)
+
+![image-20240227144310440](/Users/xiaonahe/Library/Application Support/typora-user-images/image-20240227144310440.png)
+
+
+
+
+
+#### 初始化Android Studio项目
+
+​	1、 解压 `SDK` 
+
+​	2、 将指定文件拖入 `Android Studio` 中
+
+![image-20240227144715501](/Users/xiaonahe/Library/Application Support/typora-user-images/image-20240227144715501.png)
+
+​	3、 将 `本地App资源` 放入指定目录下并删除该目录下的原文件
+
+![image-20240227145203682](/Users/xiaonahe/Library/Application Support/typora-user-images/image-20240227145203682.png)
+
+​	4、 将 `keystore` 放入指定目录下
+
+![image-20240227145650585](/Users/xiaonahe/Library/Application Support/typora-user-images/image-20240227145650585.png)
+
+​	5、 修改Android Studio设置
+
+![image-20240227151903477](/Users/xiaonahe/Library/Application Support/typora-user-images/image-20240227151903477.png)
+
+​	6、 将`SDK/libs`目录下的以下指定依赖添加至项目中
+
+- android-gif-drawable-release@1.2.23.aar
+- breakpad-build-release.aar
+- install-apk-release.aar
+- lib.5plus.base-release.aar
+- oaid_sdk_1.0.25.aar
+- uniapp-v8-release.aar
+
+![image-20240227152335976](/Users/xiaonahe/Library/Application Support/typora-user-images/image-20240227152335976.png)
+
+![image-20240227152359563](/Users/xiaonahe/Library/Application Support/typora-user-images/image-20240227152359563.png)
+
+​	![image-20240227152233191](/Users/xiaonahe/Library/Application Support/typora-user-images/image-20240227152233191.png)
+
+
+
+
+
+#### 文件配置
+
+##### AndroidManifest.xml
+
+![image-20240227145751306](/Users/xiaonahe/Library/Application Support/typora-user-images/image-20240227145751306.png)
+
+![image-20240227150231752](/Users/xiaonahe/Library/Application Support/typora-user-images/image-20240227150231752.png)
+
+
+
+
+
+##### dcloud_control.xml
+
+![image-20240227152725060](/Users/xiaonahe/Library/Application Support/typora-user-images/image-20240227152725060.png)
+
+
+
+##### strings.xml
+
+![image-20240227153011005](/Users/xiaonahe/Library/Application Support/typora-user-images/image-20240227153011005.png)
+
+
+
+##### build.gradle
+
+`com.android.tools.build:gradle:7.3.0`
+
+![image-20240227155026627](/Users/xiaonahe/Library/Application Support/typora-user-images/image-20240227155026627.png)
+
+
+
+##### build.gradle
+
+![image-20240227153218723](/Users/xiaonahe/Library/Application Support/typora-user-images/image-20240227153218723.png)
+
+```
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 30
+    buildToolsVersion '30.0.3'
+    lint {
+        // Turns off checks for the issue IDs you specify.
+        disable 'TypographyFractions','TypographyQuotes'
+        // Turns on checks for the issue IDs you specify. These checks are in
+        // addition to the default lint checks.
+        enable 'RtlHardcoded','RtlCompat', 'RtlEnabled'
+        // To enable checks for only a subset of issue IDs and ignore all others,
+        // list the issue IDs with the 'check' property instead. This property overrides
+        // any issue IDs you enable or disable using the properties above.
+        checkOnly 'NewApi', 'InlinedApi'
+        // If set to true, turns off analysis progress reporting by lint.
+        quiet true
+        // If set to true (default), stops the build if errors are found.
+        abortOnError false
+        // If set to true, lint only reports errors.
+        ignoreWarnings true
+        // If set to true, lint also checks all dependencies as part of its analysis.
+        // Recommended for projects consisting of an app with library dependencies.
+        checkDependencies true
+    }
+    defaultConfig {
+        applicationId "appName"	//	写入dcloud平台中应用的 '各平台信息'里 包名的值
+        minSdkVersion 21
+        targetSdkVersion 30
+        versionCode 1		//	写入你uniapp项目中manifest.json中的versionCode值
+        versionName "1"		//	写入你uniapp项目中manifest.json中的versionName值
+        multiDexEnabled true
+        compileOptions {
+            sourceCompatibility JavaVersion.VERSION_1_8
+            targetCompatibility JavaVersion.VERSION_1_8
+        }
+    }
+    signingConfigs {
+        config {
+            keyAlias "test"		//	写入你keystore别名，若没有则填原名
+            keyPassword '123456'	//	写入你keystore别名密码，若没有则填原密码
+            storeFile file('./test.keystore')		//	写入你keystore文件名
+            storePassword 'cai5297799'	//	写入你keystore文件密码
+            v1SigningEnabled true
+            v2SigningEnabled true
+        }
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.config
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        release {
+            signingConfig signingConfigs.config
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    aaptOptions {
+        additionalParameters '--auto-add-overlay'
+        ignoreAssetsPattern "!.svn:!.git:.*:!CVS:!thumbs.db:!picasa.ini:!*.scc:*~"
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation fileTree(include: ['*.aar'], dir: 'libs')
+    implementation 'androidx.appcompat:appcompat:1.0.0'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation 'androidx.recyclerview:recyclerview:1.0.0'
+    implementation 'com.facebook.fresco:fresco:2.5.0'
+    implementation "com.facebook.fresco:animated-gif:2.5.0"
+    implementation 'com.github.bumptech.glide:glide:4.9.0'
+    implementation 'com.alibaba:fastjson:1.2.83'
+    implementation 'androidx.webkit:webkit:1.3.0'
+}
+```
+
+
+
+
+
+
+
+#### 打包
+
+![image-20240227155345404](/Users/xiaonahe/Library/Application Support/typora-user-images/image-20240227155345404.png)
+
+![image-20240227155410064](/Users/xiaonahe/Library/Application Support/typora-user-images/image-20240227155410064.png)
+
+与之前配置`signingConfigs`同理
+
+![image-20240227155524755](/Users/xiaonahe/Library/Application Support/typora-user-images/image-20240227155524755.png)
+
+##### ![image-20240227155631738](/Users/xiaonahe/Library/Application Support/typora-user-images/image-20240227155631738.png)
+
+##### 打包完成后:
+
+![image-20240227155809584](/Users/xiaonahe/Library/Application Support/typora-user-images/image-20240227155809584.png)
