@@ -1,5 +1,6 @@
 * [环境配置](/normal/环境配置.md)
 * [渲染模式](/normal/常见渲染模式概览.md)
+* [Notice](/normal/Notice.md)
 
 ## React
 
